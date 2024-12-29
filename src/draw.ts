@@ -54,24 +54,28 @@ function drawRectangleGrid<T extends PropertyKey>(sketch: Sketch, grid: T[][], {
 }
 
 function drawHexagonGrid<T extends PropertyKey>(sketch: Sketch, _grid: T[][], _options: DrawOptions<T>) {
+	sketch.translate(20, 40);
 	sketch.fill(0);
 	sketch.textSize(20);
 	sketch.text("Not implemented", 0, 0);
 }
 
 function drawRhombusGrid<T extends PropertyKey>(sketch: Sketch, _grid: T[][], _options: DrawOptions<T>) {
+	sketch.translate(20, 40);
 	sketch.fill(0);
 	sketch.textSize(20);
 	sketch.text("Not implemented", 0, 0);
 }
 
 function drawDownTriangleGrid<T extends PropertyKey>(sketch: Sketch, _grid: T[][], _options: DrawOptions<T>) {
+	sketch.translate(20, 40);
 	sketch.fill(0);
 	sketch.textSize(20);
 	sketch.text("Not implemented", 0, 0);
 }
 
 function drawUpTriangleGrid<T extends PropertyKey>(sketch: Sketch, _grid: T[][], _options: DrawOptions<T>) {
+	sketch.translate(20, 40);
 	sketch.fill(0);
 	sketch.textSize(20);
 	sketch.text("Not implemented", 0, 0);

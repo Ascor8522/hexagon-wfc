@@ -13,10 +13,10 @@ export enum Biome {
 export const neighbors: Record<Biome, Biome[]> = ensureBijection({
 	[Biome.Desert]: [Biome.Desert, Biome.Plains],
 	[Biome.Grassland]: [Biome.Grassland, Biome.Forest, Biome.Plains],
-	[Biome.Forest]: [Biome.Forest, Biome.Hills, Biome.Grassland],
+	[Biome.Forest]: [Biome.Forest, Biome.Hills, Biome.Grassland, Biome.Swamp],
 	[Biome.Hills]: [Biome.Hills, Biome.Mountains, Biome.Forest],
 	[Biome.Mountains]: [Biome.Mountains, Biome.Hills],
-	[Biome.Plains]: [Biome.Plains, Biome.Desert, Biome.Grassland],
+	[Biome.Plains]: [Biome.Plains, Biome.Desert, Biome.Grassland, Biome.Swamp, Biome.Tundra],
 	[Biome.Swamp]: [Biome.Swamp, Biome.Forest, Biome.Plains],
 	[Biome.Tundra]: [Biome.Tundra, Biome.Plains],
 	[Biome.Water]: [Biome.Water],

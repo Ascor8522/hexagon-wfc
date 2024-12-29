@@ -2,7 +2,7 @@ div {
 	display: grid;
 	grid-template-areas: 'title title' 'nav canvas';
 	grid-template-columns: 1fr 3fr;
-	gap: 2rem;
+	gap: 1rem 2rem;
 
 	h1 {
 		grid-area: title;
@@ -32,6 +32,13 @@ div {
 			gap: 10px;
 			justify-content: space-between;
 			align-items: start;
+
+			>span {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				font-size: 0.8rem;
+			}
 		}
 	}
 

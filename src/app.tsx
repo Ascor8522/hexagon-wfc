@@ -4,7 +4,7 @@ import type { Image } from "p5";
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { JSX } from "preact/jsx-runtime";
 import styles from "./app.module.css";
-import { Biome, colors, neighbors, textures } from "./biome";
+import { Biome, colors, neighbors, textures as t } from "./biome";
 import { drawGrid, GridDrawMode } from "./draw";
 import { wfc } from "./wfc";
 
@@ -12,25 +12,46 @@ import p5 from "p5";
 
 export type Sketch = any; // FIXME
 
+interface Settings {
+	shape: GridDrawMode;
+	rows: number;
+	cols: number;
+	onPoint: boolean;
+	hexSize: number;
+	seed: string;
+	width: number;
+	height: number;
+}
+
+const randomSeed = () => Math.random().toString(36).substring(2, 2 + 1 + Math.round(Math.random() * 10));
+
+const defaultSettings: Settings = {
+	shape: GridDrawMode.RECTANGLE,
+	rows: 5,
+	cols: 6,
+	onPoint: true,
+	hexSize: 50,
+	seed: randomSeed(),
+	width: 650,
+	height: 450,
+};
+
 export default function App() {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
-	// TODO: merge into a single state object
-	const [[width, height], setImageSize] = useState([600, 450] as [number, number]);
-	const [[rows, cols], setGridSize] = useState([5, 6] as [number, number]);
-	const [shape, setShape] = useState(GridDrawMode.RECTANGLE);
-	const [seed, setSeed] = useState("seed");
-	const [onPoint, setOnPoint] = useState(true);
-	const [hexSize, setHexSize] = useState(50);
+	const [settings, setSettings] = useState(defaultSettings);
+	const { shape, rows, cols, onPoint, hexSize, seed, width, height } = settings;
 
-	const setWidthHndlr = (e: JSX.TargetedInputEvent<HTMLInputElement>) => setImageSize([+e.currentTarget.value, height]);
-	const setHeightHndlr = (e: JSX.TargetedInputEvent<HTMLInputElement>) => setImageSize([width, +e.currentTarget.value]);
-	const setShapeHndlr = (e: JSX.TargetedEvent<HTMLSelectElement>) => setShape(e.currentTarget.value as GridDrawMode);
-	const setOnPointHndlr = (e: JSX.TargetedInputEvent<HTMLInputElement>) => setOnPoint(e.currentTarget.checked);
-	const setRowsHndlr = (e: JSX.TargetedInputEvent<HTMLInputElement>) => setGridSize([+e.currentTarget.value, cols]);
-	const setColsHndlr = (e: JSX.TargetedInputEvent<HTMLInputElement>) => setGridSize([rows, +e.currentTarget.value]);
-	const setSeedHndlr = (e: JSX.TargetedInputEvent<HTMLInputElement>) => setSeed(e.currentTarget.value);
-	const randomizeSeedHndlr = () => setSeed(Math.random().toString(36).substring(2, 2 + 1 + Math.round(Math.random() * 10)));
-	const setHexSizeHndlr = (e: JSX.TargetedInputEvent<HTMLInputElement>) => setHexSize(+e.currentTarget.value);
+	const [textures, setTextures] = useState<Record<Biome, Image> | null>(null);
+
+	const setShapeHndlr = (e: JSX.TargetedEvent<HTMLSelectElement>) => setSettings({ ...settings, shape: e.currentTarget.value as GridDrawMode });
+	const setRowsHndlr = (e: JSX.TargetedInputEvent<HTMLInputElement>) => setSettings({ ...settings, rows: +e.currentTarget.value });
+	const setColsHndlr = (e: JSX.TargetedInputEvent<HTMLInputElement>) => setSettings({ ...settings, cols: +e.currentTarget.value });
+	const setOnPointHndlr = (e: JSX.TargetedInputEvent<HTMLInputElement>) => setSettings({ ...settings, onPoint: e.currentTarget.checked });
+	const setHexSizeHndlr = (e: JSX.TargetedInputEvent<HTMLInputElement>) => setSettings({ ...settings, hexSize: +e.currentTarget.value });
+	const setSeedHndlr = (e: JSX.TargetedInputEvent<HTMLInputElement>) => setSettings({ ...settings, seed: e.currentTarget.value });
+	const randomizeSeedHndlr = () => setSettings({ ...settings, seed: randomSeed() });
+	const setWidthHndlr = (e: JSX.TargetedInputEvent<HTMLInputElement>) => setSettings({ ...settings, width: +e.currentTarget.value });
+	const setHeightHndlr = (e: JSX.TargetedInputEvent<HTMLInputElement>) => setSettings({ ...settings, height: +e.currentTarget.value });
 	const saveImageHndlr = () => {
 		const canvas = canvasRef.current;
 		if(!canvas) return;
@@ -42,35 +63,39 @@ export default function App() {
 		document.body.removeChild(link);
 	};
 
-
 	const rnd = prng_alea(seed);
+
+	useEffect(() => {
+		new p5((sketch) => {
+			sketch.preload = () => {
+				const prom = Object
+					.entries(t)
+					.map(([key, value]) => [key, sketch.loadImage(value)] as [Biome, Image]);
+				setTextures(Object.fromEntries(prom) as Record<Biome, Image>);
+			};
+		});
+	}, []);
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
 		if(!canvas) return;
 
+		if(!textures) return;
+
 		new p5((sketch) => {
-			let loadedTextures: Record<Biome, Image>;
-			sketch.preload = () => {
-				const prom = Object
-					.entries(textures)
-					.map(([key, value]) => [key, sketch.loadImage(value)] as const);
-				loadedTextures = Object.fromEntries(prom) as Record<Biome, Image>;
-			};
 			sketch.setup = () => {
 				sketch.createCanvas(width, height, canvas);
-			};
-			sketch.draw = () => {
-				try {
-					const grid = wfc(rows, cols, neighbors, rnd);
-					drawGrid(sketch, grid, { colors, size: hexSize, onPoint, textures: loadedTextures, mode: shape });
-				} catch(e) {
-					alert(e instanceof Error ? e.message : e);
+				while(true) {
+					try {
+						const grid = wfc(rows, cols, neighbors, rnd);
+						drawGrid(sketch, grid, { colors, size: hexSize, onPoint, textures, mode: shape });
+						break;
+					} catch(_e) { }
 				}
 				sketch.noLoop();
 			};
 		});
-	}, [width, height, rows, cols, shape, seed, onPoint, hexSize]);
+	}, [settings, textures]);
 
 	return (
 		<div style={styles}>
@@ -78,42 +103,13 @@ export default function App() {
 
 			<nav>
 				<fieldset>
-					<legend>Map Size (px)</legend>
+					<legend>Grid</legend>
 					<label>
-						Width
-						<input
-							type="number"
-							value={width}
-							min={1}
-							onInput={setWidthHndlr} />
-					</label>
-					<label>
-						Height
-						<input
-							type="number"
-							value={height}
-							min={1}
-							onInput={setHeightHndlr} />
-					</label>
-				</fieldset>
-				<fieldset>
-					<legend>Shape</legend>
-					<label>
-						Shape
+						Arrangement
 						<select onChange={setShapeHndlr}>
 							{Object.values(GridDrawMode).map((mode) => <option selected={mode === shape} value={mode}>{mode}</option>)}
 						</select>
 					</label>
-					<label>
-						On Point
-						<input
-							type="checkbox"
-							checked={onPoint}
-							onInput={setOnPointHndlr} />
-					</label>
-				</fieldset>
-				<fieldset>
-					<legend>Grid Size</legend>
 					{/* TODO: different inputs depending on the shape selected (e.g. radius or height) */}
 					<label>
 						Rows
@@ -133,7 +129,31 @@ export default function App() {
 					</label>
 				</fieldset>
 				<fieldset>
-					<legend>Seed</legend>
+					<legend>Tiles</legend>
+					<label>
+						On Point
+						<input
+							type="checkbox"
+							checked={onPoint}
+							onInput={setOnPointHndlr} />
+					</label>
+					<label>
+						Size (px)
+						<span>
+							{hexSize}
+							&nbsp;
+							<input
+								type="range"
+								value={hexSize}
+								min={1}
+								step={1}
+								title={hexSize.toString()}
+								onInput={setHexSizeHndlr} />
+						</span>
+					</label>
+				</fieldset>
+				<fieldset>
+					<legend>Map</legend>
 					<label>
 						Seed
 						<input
@@ -146,15 +166,25 @@ export default function App() {
 						<button onClick={randomizeSeedHndlr}>Randomize</button>
 					</label>
 				</fieldset>
-				<label>
-					Hex Size
-					<input
-						type="range"
-						value={hexSize}
-						min={1}
-						step={1}
-						onChange={setHexSizeHndlr} />
-				</label>
+				<fieldset>
+					<legend>Image</legend>
+					<label>
+						Width (px)
+						<input
+							type="number"
+							value={width}
+							min={1}
+							onInput={setWidthHndlr} />
+					</label>
+					<label>
+						Height (px)
+						<input
+							type="number"
+							value={height}
+							min={1}
+							onInput={setHeightHndlr} />
+					</label>
+				</fieldset>
 				<button onClick={saveImageHndlr}>Save Image</button>
 			</nav>
 
