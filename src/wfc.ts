@@ -1,55 +1,49 @@
-export function wfc<T extends PropertyKey>(rows: number, cols: number, ruleset: Record<T, T[]>, random: () => number): T[][] {
-	if(rows <= 0) throw new Error("Width must be greater than 0");
-	if(cols <= 0) throw new Error("Height must be greater than 0");
+import { Hexagon, hexEquals, hexNeighbors } from "./model/hexagon";
+
+export function wfc<T extends PropertyKey>(grid: Hexagon[], ruleset: Record<T, T[]>, random: () => number): (Hexagon & { value: T; })[] {
+	type WithValues = Hexagon & { values: T[]; };
+
 	if(Object.keys(ruleset).length === 0) throw new Error("Ruleset must not be empty");
 
 	const rules = Object.keys(ruleset) as T[];
-	const arr = Array.from({ length: rows }, () => Array.from({ length: cols }, _ => rules.slice()));
+	const arr = grid.map(hex => ({ ...hex, values: rules }));
 
 	let iter = 0;
 	while(true) {
-		const cells = arr
-			.map((_, row) => _.map((cell, col): Cell => ({ row, col, count: cell.length })))
-			.flat();
-
-		const done = cells.every(cell => cell.count === 1);
-		if(done) return arr.map(row => row.map(cell => cell[0]));
-
-		const impossible = cells.some(cell => cell.count === 0);
+		const impossible = arr.some(hex => !hex.values.length);
 		if(impossible) throw new Error("No possible values");
 
-		if(iter++ > rows * cols * rules.length) throw new Error("Too many iterations");
+		const done = arr.every(hex => hex.values.length === 1);
+		if(done) return arr.map(({ values, ...hex }) => ({ ...hex, value: values[0] }));
 
-		const workable = cells
-			.reduce(({ minCount, cells }, cell) => {
-				if(cell.count < minCount && cell.count > 1) {
-					minCount = cell.count;
-					cells = [];
+		const timeout = iter++ > grid.length * rules.length * 2;
+		if(timeout) throw new Error("Too many iterations");
+
+		const workable = arr
+			.reduce(({ min, hexes }, hex) => {
+				const newLen = hex.values.length;
+				if(newLen < min && newLen > 1) {
+					min = newLen;
+					hexes = [];
 				}
-				if(cell.count === minCount) cells.push(cell);
-				return { minCount, cells };
-			}, { minCount: Infinity, cells: [] as Cell[] })
-			.cells;
+				if(newLen === min) hexes.push(hex);
+				return { min, hexes };
+			}, { min: Infinity, hexes: [] as WithValues[] })
+			.hexes;
 
-		const cell = workable[Math.floor(random() * workable.length)];
-		const { col, row } = cell;
-		const values = arr[row][col];
-		const value = values[Math.floor(random() * values.length)];
-		arr[row][col] = [value];
+		debugger;
 
-		[
-			{ row: row - 1, col },
-			{ row: row + 1, col },
-			{ row, col: col - 1 },
-			{ row, col: col + 1 },
-		]
-			.filter(({ row, col }) => row >= 0 && row < rows && col >= 0 && col < cols && arr[row][col].length > 1)
-			.forEach(({ row, col }) => arr[row][col] = arr[row][col].filter(val => ruleset[value].includes(val)));
+		const randomHexIndex = Math.floor(random() * workable.length);
+		const randomHex = workable[randomHexIndex];
+
+		const currValues = randomHex.values;
+		const newValue = currValues[Math.floor(random() * currValues.length)];
+
+		workable[randomHexIndex].values = [newValue];
+
+		hexNeighbors(randomHex)
+			.map(hex => arr.find(h => hexEquals(h, hex)))
+			.filter(hex => hex !== undefined)
+			.forEach(hex => hex.values = hex.values.filter(val => ruleset[newValue].includes(val)));
 	}
-}
-
-interface Cell {
-	row: number;
-	col: number;
-	count: number;
 }

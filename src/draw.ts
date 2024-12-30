@@ -1,7 +1,8 @@
 import type { Image } from "p5";
-import type { Sketch } from "./app";
+import type { Sketch } from "./components/app";
+import { Hexagon, hexToXYCoordinates } from "./model/hexagon";
 
-export enum GridDrawMode {
+export enum GridShape {
 	RECTANGLE = "RECTANGLE",
 	HEXAGON = "HEXAGON",
 	RHOMBUS = "RHOMBUS",
@@ -16,72 +17,37 @@ interface DrawOptions<T extends PropertyKey> {
 	onPoint?: boolean;
 }
 
-export function drawGrid<T extends PropertyKey>(sketch: Sketch, grid: T[][], { mode, ...options }: DrawOptions<T> & { mode?: GridDrawMode; }) {
-	mode ??= GridDrawMode.RECTANGLE;
-	switch(mode) {
-		case GridDrawMode.RECTANGLE: return drawRectangleGrid(sketch, grid, options);
-		case GridDrawMode.HEXAGON: return drawHexagonGrid(sketch, grid, options);
-		case GridDrawMode.RHOMBUS: return drawRhombusGrid(sketch, grid, options);
-		case GridDrawMode.DOWN_TRIANGLE: return drawDownTriangleGrid(sketch, grid, options);
-		case GridDrawMode.UP_TRIANGLE: return drawUpTriangleGrid(sketch, grid, options);
-		default: void (mode satisfies never);
-	}
-}
-
-function drawRectangleGrid<T extends PropertyKey>(sketch: Sketch, grid: T[][], { colors, onPoint = false, size = 30, textures: _ }: DrawOptions<T>) {
+export function drawGrid<T extends PropertyKey>(sketch: Sketch, grid: (Hexagon & { value: T; })[], { colors, textures: _textures, size = 50, onPoint = true }: DrawOptions<T>) {
 	const horizontalSpacing = getPolygonSpacingHorizontal(size, onPoint);
 	const verticalSpacing = getPolygonSpacingVertical(size, onPoint);
 
 	sketch.translate(horizontalSpacing, verticalSpacing); // TODO: pre-compute size of tiles, and center accordingly
 
 	grid
-		.forEach((row, rowIndex) => row
-			.forEach((cell, colIndex) => {
-				const xOffset = onPoint && rowIndex % 2 ? verticalSpacing / 2 : 0;
-				const yOffset = !onPoint && colIndex % 2 ? horizontalSpacing / 2 : 0;
-				const x = colIndex * horizontalSpacing + xOffset;
-				const y = rowIndex * verticalSpacing + yOffset;
-				sketch.push();
-				sketch.translate(x, y);
-				sketch.fill(colors[cell]);
-				// const img = textures[cell];
-				// img.resize(horizontalSpacing * 2, verticalSpacing * 2);
-				// sketch.background(img); // TODO: shape as mask for image
-				// sketch.noStroke();
-				drawHexagon(sketch, size, onPoint, String(cell));
-				sketch.pop();
-			}));
+		.forEach((hex) => {
+			const [x, y] = hexToXYCoordinates(hex, size, onPoint);
+			sketch.push();
+			sketch.translate(x, y);
+			sketch.fill(colors[hex.value]);
+			// const img = textures[cell];
+			// img.resize(horizontalSpacing * 2, verticalSpacing * 2);
+			// sketch.background(img); // TODO: shape as mask for image
+			// sketch.noStroke();
+			drawHexagon(sketch, size, onPoint, String(hex.value));
+			sketch.pop();
+		});
 }
 
-function drawHexagonGrid<T extends PropertyKey>(sketch: Sketch, _grid: T[][], _options: DrawOptions<T>) {
-	sketch.translate(20, 40);
-	sketch.fill(0);
-	sketch.textSize(20);
-	sketch.text("Not implemented", 0, 0);
+export function drawNotPossible(sketch: Sketch, message?: string) {
+	sketch.fill(255, 0, 0, 100);
+	sketch.textAlign(sketch.CENTER, sketch.CENTER);
+	sketch.textSize(100);
+	sketch.text("Not Possible", sketch.width / 2, sketch.height / 2 - 50);
+	if(message) {
+		sketch.textSize(50);
+		sketch.text(message, sketch.width / 2, sketch.height / 2 + 50);
+	}
 }
-
-function drawRhombusGrid<T extends PropertyKey>(sketch: Sketch, _grid: T[][], _options: DrawOptions<T>) {
-	sketch.translate(20, 40);
-	sketch.fill(0);
-	sketch.textSize(20);
-	sketch.text("Not implemented", 0, 0);
-}
-
-function drawDownTriangleGrid<T extends PropertyKey>(sketch: Sketch, _grid: T[][], _options: DrawOptions<T>) {
-	sketch.translate(20, 40);
-	sketch.fill(0);
-	sketch.textSize(20);
-	sketch.text("Not implemented", 0, 0);
-}
-
-function drawUpTriangleGrid<T extends PropertyKey>(sketch: Sketch, _grid: T[][], _options: DrawOptions<T>) {
-	sketch.translate(20, 40);
-	sketch.fill(0);
-	sketch.textSize(20);
-	sketch.text("Not implemented", 0, 0);
-}
-
-
 
 function getPolygonSpacingHorizontal(outerRadius: number, onPoint = false) {
 	return onPoint ? Math.sqrt(3) * outerRadius : 3 * outerRadius / 2;

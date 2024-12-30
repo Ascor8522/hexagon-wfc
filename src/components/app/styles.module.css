@@ -1,0 +1,21 @@
+div {
+	display: grid;
+	grid-template-areas: 'title title' 'nav canvas';
+	grid-template-columns: auto 1fr;
+	gap: 1rem 2rem;
+
+	h1 {
+		grid-area: title;
+		margin: 0;
+	}
+
+	nav {
+		grid-area: nav;
+	}
+
+	canvas {
+		grid-area: canvas;
+
+		border: 1px solid black;
+	}
+}

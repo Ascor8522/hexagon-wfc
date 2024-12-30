@@ -15,11 +15,11 @@ export const neighbors: Record<Biome, Biome[]> = ensureBijection({
 	[Biome.Grassland]: [Biome.Grassland, Biome.Forest, Biome.Plains],
 	[Biome.Forest]: [Biome.Forest, Biome.Hills, Biome.Grassland, Biome.Swamp],
 	[Biome.Hills]: [Biome.Hills, Biome.Mountains, Biome.Forest],
-	[Biome.Mountains]: [Biome.Mountains, Biome.Hills],
+	[Biome.Mountains]: [Biome.Mountains, Biome.Hills, Biome.Water],
 	[Biome.Plains]: [Biome.Plains, Biome.Desert, Biome.Grassland, Biome.Swamp, Biome.Tundra],
-	[Biome.Swamp]: [Biome.Swamp, Biome.Forest, Biome.Plains],
+	[Biome.Swamp]: [Biome.Swamp, Biome.Forest, Biome.Plains, Biome.Water],
 	[Biome.Tundra]: [Biome.Tundra, Biome.Plains],
-	[Biome.Water]: [Biome.Water],
+	[Biome.Water]: [Biome.Water, Biome.Swamp, Biome.Mountains],
 });
 
 export const colors: Record<Biome, string> = {
