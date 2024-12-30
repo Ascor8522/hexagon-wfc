@@ -20,7 +20,14 @@ nav {
 			display: flex;
 			flex-direction: row;
 			align-items: center;
-			font-size: 0.8rem;
+
+			>span {
+				width: 3em;
+				text-align: right;
+				font-size: 0.8rem;
+				line-height: 2;
+			}
 		}
+
 	}
 }

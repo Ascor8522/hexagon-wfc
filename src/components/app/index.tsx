@@ -28,7 +28,7 @@ interface Settings {
 const randomSeed = () => Math.random().toString(36).substring(2, 2 + 1 + Math.round(Math.random() * 10));
 
 const defaultSettings: Settings = {
-	shape: GridShape.RHOMBUS,
+	shape: GridShape.HEXAGON,
 	rows: 5,
 	cols: 6,
 	onPoint: true,
@@ -94,7 +94,7 @@ export default function App() {
 				try {
 					let emptyGrid: Hexagon[];
 					switch(shape) {
-						case GridShape.RECTANGLE: emptyGrid = generateRectangleGrid(rows, cols); break;
+						case GridShape.RECTANGLE: emptyGrid = generateRectangleGrid(rows, cols, onPoint); break;
 						case GridShape.HEXAGON: emptyGrid = generateHexagonGrid(radius); break;
 						case GridShape.RHOMBUS: emptyGrid = generateRhombusGrid(rows, cols); break;
 						case GridShape.DOWN_TRIANGLE: emptyGrid = generateDownTriangleGrid(triangleHeight); break;
@@ -102,6 +102,7 @@ export default function App() {
 						default: void (shape satisfies never);
 					}
 					const grid = wfc(emptyGrid!, neighbors, rnd);
+					if(shape === GridShape.HEXAGON) sketch.translate(radius * 2 * hexSize, radius * 2 * hexSize);
 					drawGrid(sketch, grid, { colors, size: hexSize, onPoint, textures: loadedTextures! });
 				} catch(e) {
 					drawNotPossible(sketch, e instanceof Error ? e.message : String(e));
@@ -133,7 +134,9 @@ export default function App() {
 				saveImageHndlr,
 			}} />
 
-			<canvas ref={canvasRef} />
+			<span class="canvas-container">
+				<canvas ref={canvasRef} />
+			</span>
 		</div>
 	);
 }

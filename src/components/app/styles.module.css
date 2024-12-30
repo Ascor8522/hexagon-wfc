@@ -3,6 +3,8 @@ div {
 	grid-template-areas: 'title title' 'nav canvas';
 	grid-template-columns: auto 1fr;
 	gap: 1rem 2rem;
+	align-content: start;
+	height: 100%;
 
 	h1 {
 		grid-area: title;
@@ -13,9 +15,13 @@ div {
 		grid-area: nav;
 	}
 
-	canvas {
+	span {
 		grid-area: canvas;
+		height: 100%;
+		overflow: auto;
 
-		border: 1px solid black;
+		canvas {
+			border: 1px solid black;
+		}
 	}
 }

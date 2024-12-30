@@ -20,6 +20,7 @@ body {
 	font-family: 'Roboto', sans-serif;
 	background-color: var(--bg-color);
 	color: var(--text-color);
+	height: calc(100vh - 2rem);
 }
 
 button {

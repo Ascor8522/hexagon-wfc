@@ -31,8 +31,6 @@ export function wfc<T extends PropertyKey>(grid: Hexagon[], ruleset: Record<T, T
 			}, { min: Infinity, hexes: [] as WithValues[] })
 			.hexes;
 
-		debugger;
-
 		const randomHexIndex = Math.floor(random() * workable.length);
 		const randomHex = workable[randomHexIndex];
 

@@ -75,7 +75,9 @@ export default function Settings(props: SettingsProps) {
 				<label>
 					Size (px)
 					<span>
-						{props.hexSize}
+						<span>
+							{props.hexSize}
+						</span>
 						&nbsp;
 						<input
 							type="range"
