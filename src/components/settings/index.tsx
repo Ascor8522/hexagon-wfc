@@ -45,10 +45,10 @@ export default function Settings(props: SettingsProps) {
 						Radius
 						<input
 							type="number"
-							value={props.radius}
+							value={props.hexagonGridRadius}
 							min={1}
 							step={1}
-							onInput={e => props.setRadiusHndlr(+e.currentTarget.value)} />
+							onInput={e => props.setHexagonGridRadiusHndlr(+e.currentTarget.value)} />
 					</label>
 				</>}
 				{(props.shape === GridShape.UP_TRIANGLE || props.shape === GridShape.DOWN_TRIANGLE) && <>
@@ -76,16 +76,16 @@ export default function Settings(props: SettingsProps) {
 					Size (px)
 					<span>
 						<span>
-							{props.hexSize}
+							{props.radius}
 						</span>
 						&nbsp;
 						<input
 							type="range"
-							value={props.hexSize}
+							value={props.radius}
 							min={1}
 							step={1}
-							title={props.hexSize.toString()}
-							onInput={e => props.setHexSizeHndlr(+e.currentTarget.value)} />
+							title={props.radius.toString()}
+							onInput={e => props.setRadiusHndlr(+e.currentTarget.value)} />
 					</span>
 				</label>
 			</fieldset>
@@ -133,20 +133,20 @@ interface SettingsProps {
 	shape: GridShape;
 	rows: number;
 	cols: number;
-	radius: number;
+	hexagonGridRadius: number;
 	triangleHeight: number;
 	onPoint: boolean;
-	hexSize: number;
+	radius: number;
 	seed: string;
 	width: number;
 	height: number;
 	setShapeHndlr(shape: GridShape): void;
 	setRowsHndlr(rows: number): void;
 	setColsHndlr(cols: number): void;
-	setRadiusHndlr(radius: number): void;
+	setHexagonGridRadiusHndlr(radius: number): void;
 	setTriangleHeightHndlr(height: number): void;
 	setOnPointHndlr(onPoint: boolean): void;
-	setHexSizeHndlr(hexSize: number): void;
+	setRadiusHndlr(hexSize: number): void;
 	setSeedHndlr(seed: string): void;
 	randomizeSeedHndlr(): void;
 	setWidthHndlr(width: number): void;

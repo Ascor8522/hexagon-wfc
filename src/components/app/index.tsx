@@ -4,7 +4,7 @@ import p5, { type Image } from "p5";
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { Biome, colors, neighbors } from "../../biome";
-import { drawGrid, drawNotPossible, GridShape } from "../../draw";
+import { drawErrorMessage, drawGrid, GridShape } from "../../draw";
 import { generateDownTriangleGrid, generateHexagonGrid, generateRectangleGrid, generateRhombusGrid, generateUpTriangleGrid } from "../../grid";
 import { Hexagon } from "../../model/hexagon";
 import { wfc } from "../../wfc";
@@ -19,7 +19,7 @@ interface Settings {
 	rows: number;
 	cols: number;
 	onPoint: boolean;
-	hexSize: number;
+	radius: number;
 	seed: string;
 	width: number;
 	height: number;
@@ -32,7 +32,7 @@ const defaultSettings: Settings = {
 	rows: 5,
 	cols: 6,
 	onPoint: true,
-	hexSize: 40,
+	radius: 40,
 	seed: randomSeed(),
 	width: 650,
 	height: 450,
@@ -43,17 +43,17 @@ export default function App() {
 	const [settings, setSettings] = useState(defaultSettings);
 	const [loadedTextures, _setLoadedTextures] = useState<Record<Biome, Image> | null>(null);
 
-	const { shape, rows, cols, onPoint, hexSize, seed, width, height } = settings;
-	const radius = Math.ceil((rows + 1) / 2);
+	const { shape, rows, cols, onPoint, radius, seed, width, height } = settings;
+	const hexagonGridRadius = Math.ceil((rows + 1) / 2);
 	const triangleHeight = Math.max(rows, cols);
 
 	const setShapeHndlr = (shape: GridShape) => setSettings({ ...settings, shape });
 	const setRowsHndlr = (rows: number) => setSettings({ ...settings, rows });
 	const setColsHndlr = (cols: number) => setSettings({ ...settings, cols });
-	const setRadiusHndlr = (radius: number) => setSettings({ ...settings, rows: (radius * 2) - 1, cols: (radius * 2) - 1 });
+	const setHexagonGridRadiusHndlr = (hexagonGridRadius: number) => setSettings({ ...settings, rows: (hexagonGridRadius * 2) - 1, cols: (hexagonGridRadius * 2) - 1 });
 	const setTriangleHeightHndlr = (triangleHeight: number) => setSettings({ ...settings, rows: triangleHeight, cols: triangleHeight });
 	const setOnPointHndlr = (onPoint: boolean) => setSettings({ ...settings, onPoint });
-	const setHexSizeHndlr = (hexSize: number) => setSettings({ ...settings, hexSize });
+	const setRadiusHndlr = (radius: number) => setSettings({ ...settings, radius });
 	const setSeedHndlr = (seed: string) => setSettings({ ...settings, seed });
 	const randomizeSeedHndlr = () => setSettings({ ...settings, seed: randomSeed() });
 	const setWidthHndlr = (width: number) => setSettings({ ...settings, width });
@@ -71,6 +71,7 @@ export default function App() {
 
 	const rnd = prng_alea(seed);
 
+	// TODO: preload textures
 	// useEffect(() => {
 	// 	new p5((sketch) => {
 	// 		sketch.preload = () => {
@@ -86,7 +87,7 @@ export default function App() {
 		const canvas = canvasRef.current;
 		if(!canvas) return;
 
-		// if(!loadedTextures) return;
+		// if(!loadedTextures) return; // TODO: preload textures
 
 		new p5((sketch) => {
 			sketch.setup = () => {
@@ -95,17 +96,16 @@ export default function App() {
 					let emptyGrid: Hexagon[];
 					switch(shape) {
 						case GridShape.RECTANGLE: emptyGrid = generateRectangleGrid(rows, cols, onPoint); break;
-						case GridShape.HEXAGON: emptyGrid = generateHexagonGrid(radius); break;
+						case GridShape.HEXAGON: emptyGrid = generateHexagonGrid(hexagonGridRadius); break;
 						case GridShape.RHOMBUS: emptyGrid = generateRhombusGrid(rows, cols); break;
 						case GridShape.DOWN_TRIANGLE: emptyGrid = generateDownTriangleGrid(triangleHeight); break;
 						case GridShape.UP_TRIANGLE: emptyGrid = generateUpTriangleGrid(triangleHeight); break;
 						default: void (shape satisfies never);
 					}
 					const grid = wfc(emptyGrid!, neighbors, rnd);
-					if(shape === GridShape.HEXAGON) sketch.translate(radius * 2 * hexSize, radius * 2 * hexSize);
-					drawGrid(sketch, grid, { colors, size: hexSize, onPoint, textures: loadedTextures! });
+					drawGrid(sketch, grid, { colors, radius: radius, onPoint, textures: loadedTextures! });
 				} catch(e) {
-					drawNotPossible(sketch, e instanceof Error ? e.message : String(e));
+					drawErrorMessage(sketch, "Not Possible", e instanceof Error ? e.message : String(e));
 				}
 				sketch.noLoop();
 			};
@@ -118,15 +118,15 @@ export default function App() {
 
 			<Settings {...{
 				...settings,
-				radius,
+				hexagonGridRadius,
 				triangleHeight,
 				setShapeHndlr,
 				setRowsHndlr,
 				setColsHndlr,
-				setRadiusHndlr,
+				setHexagonGridRadiusHndlr,
 				setTriangleHeightHndlr,
 				setOnPointHndlr,
-				setHexSizeHndlr,
+				setRadiusHndlr,
 				setSeedHndlr,
 				randomizeSeedHndlr,
 				setWidthHndlr,
