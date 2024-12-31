@@ -62,8 +62,8 @@ export function generateRhombusGrid(rows: number, cols: number): Hexagon[] {
 export function generateDownTriangleGrid(side: number): Hexagon[] {
 	// FIXME: improve
 	const grid: Hexagon[] = [];
-	for(let q = 0; q <= side; q++) {
-		for(let r = 0; r <= side - q; r++) {
+	for(let q = 0; q < side; q++) {
+		for(let r = 0; r < side - q; r++) {
 			grid.push({ q, r, s: - q - r });
 		}
 	}
@@ -81,7 +81,7 @@ export function generateDownTriangleGrid(side: number): Hexagon[] {
 export function generateUpTriangleGrid(side: number): Hexagon[] {
 	// FIXME: improve
 	const grid: Hexagon[] = [];
-	for(let q = 0; q <= side; q++) {
+	for(let q = 0; q < side; q++) {
 		for(let r = side - q; r <= side; r++) {
 			grid.push({ q, r, s: - q - r });
 		}
