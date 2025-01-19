@@ -59,4 +59,9 @@
 			visibility: visible;
 		}
 	}
+
+	>a,
+	>a:visited {
+		color: var(--text-color);
+	}
 }

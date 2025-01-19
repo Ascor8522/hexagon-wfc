@@ -79,6 +79,13 @@ export default function FileInput({ images, addTextureImagesHndlr, removeTexture
 							<button onClick={onRemoveImage(name as Biome)}>X</button>
 						</div>
 					</>)}
+				{!base64Images.length && <>
+					<a
+						href="/tiles.zip"
+						download>
+						Download Sample Images
+					</a>
+				</>}
 			</div>
 		</div>
 	);
