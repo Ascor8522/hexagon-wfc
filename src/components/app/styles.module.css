@@ -1,7 +1,7 @@
-div {
+.app {
 	display: grid;
-	grid-template-areas: 'title title' 'nav canvas';
-	grid-template-columns: auto 1fr;
+	grid-template-areas: 'title title title' 'nav hr canvas';
+	grid-template-columns: auto auto 1fr;
 	gap: 1rem 2rem;
 	align-content: start;
 	height: 100%;
@@ -13,6 +13,13 @@ div {
 
 	nav {
 		grid-area: nav;
+		width: min-content;
+	}
+
+	hr {
+		grid-area: hr;
+		height: 100%;
+		margin: 0;
 	}
 
 	span {
@@ -21,7 +28,7 @@ div {
 		overflow: auto;
 
 		canvas {
-			border: 1px solid black;
+			border: 1px solid var(--text-color);
 		}
 	}
 }

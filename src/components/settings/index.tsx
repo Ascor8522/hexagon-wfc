@@ -1,9 +1,21 @@
-import { GridShape } from "../../draw";
+import { Biome } from "../../model/biome";
+import { GridShape } from "../../model/grid";
+import { Settings as S, SetterHndlr } from "../app";
+import FileInput from "../file-input";
 import styles from "./styles.module.css";
 
 export default function Settings(props: SettingsProps) {
 	return (
-		<nav style={styles}>
+		<nav class={styles.nav}>
+			<fieldset>
+				<legend>Biomes</legend>
+				Textures
+				<FileInput
+					images={props.textureFiles}
+					addTextureImagesHndlr={props.addTextureImagesHndlr}
+					removeTextureImagesHndlr={props.removeTextureImagesHndlr}
+					removeAllTextureImagesHndlr={props.removeAllTextureImagesHndlr} />
+			</fieldset>
 			<fieldset>
 				<legend>Grid</legend>
 				<label>
@@ -15,7 +27,7 @@ export default function Settings(props: SettingsProps) {
 								<option
 									value={mode}
 									selected={mode === props.shape}>
-									{mode}
+									{mode.toLowerCase().replace(/_/g, " ")}
 								</option>
 							</>)}
 					</select>
@@ -129,27 +141,15 @@ export default function Settings(props: SettingsProps) {
 	);
 }
 
-interface SettingsProps {
-	shape: GridShape;
-	rows: number;
-	cols: number;
+interface SettingsProps extends SetterHndlr<S> {
+	textureFiles: Partial<Record<Biome, File>>;
+	addTextureImagesHndlr(images: File[]): void;
+	removeTextureImagesHndlr(name: Biome): void;
+	removeAllTextureImagesHndlr(): void;
 	hexagonGridRadius: number;
-	triangleHeight: number;
-	onPoint: boolean;
-	radius: number;
-	seed: string;
-	width: number;
-	height: number;
-	setShapeHndlr(shape: GridShape): void;
-	setRowsHndlr(rows: number): void;
-	setColsHndlr(cols: number): void;
 	setHexagonGridRadiusHndlr(radius: number): void;
+	triangleHeight: number;
 	setTriangleHeightHndlr(height: number): void;
-	setOnPointHndlr(onPoint: boolean): void;
-	setRadiusHndlr(hexSize: number): void;
-	setSeedHndlr(seed: string): void;
 	randomizeSeedHndlr(): void;
-	setWidthHndlr(width: number): void;
-	setHeightHndlr(height: number): void;
-	saveImageHndlr(): void;
+	saveImageHndlr: (() => void) | undefined;
 }

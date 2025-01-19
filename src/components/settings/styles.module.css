@@ -1,4 +1,4 @@
-nav {
+.nav {
 	display: flex;
 	flex-direction: column;
 	gap: 1rem;
@@ -28,6 +28,13 @@ nav {
 				line-height: 2;
 			}
 		}
+	}
 
+	select {
+
+		&,
+		option {
+			text-transform: capitalize;
+		}
 	}
 }

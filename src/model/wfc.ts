@@ -1,4 +1,4 @@
-import { Hexagon, hexEquals, hexNeighbors } from "./model/hexagon";
+import { Hexagon, hexEquals, hexNeighbors } from "./hexagon";
 
 export function wfc<T extends PropertyKey>(grid: Hexagon[], ruleset: Record<T, T[]>, random: () => number): (Hexagon & { value: T; })[] {
 	type WithValues = Hexagon & { values: T[]; };

@@ -42,8 +42,9 @@ export function hexToXYCoordinates(hex: Hexagon, radius: number, onPoint: boolea
 export function getBoundingBox(grid: Hexagon[], radius: number, onPoint: boolean): [number, number, number, number] {
 	if(grid.length === 0) return [0, 0, 0, 0];
 
+	type Side = "left" | "right" | "top" | "bottom";
 	const { left, right, top, bottom } = grid
-		.reduce(({ left, right, top, bottom }: Record<"left" | "right" | "top" | "bottom", Hexagon | null>, hex) => {
+		.reduce(({ left, right, top, bottom }: Record<Side, Hexagon | null>, hex) => {
 			if(!left || !right || !top || !bottom) return { left: hex, right: hex, top: hex, bottom: hex };
 
 			if(hex.q < left.q) left = hex;
@@ -52,7 +53,7 @@ export function getBoundingBox(grid: Hexagon[], radius: number, onPoint: boolean
 			if(hex.r < bottom.r) bottom = hex;
 
 			return { left, right, top, bottom };
-		}, { left: null, right: null, top: null, bottom: null }) as Record<"left" | "right" | "top" | "bottom", Hexagon>;
+		}, { left: null, right: null, top: null, bottom: null }) as Record<Side, Hexagon>;
 
 	const apothem = getApothem(radius);
 

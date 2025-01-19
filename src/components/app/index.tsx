@@ -1,20 +1,14 @@
-// @ts-ignore
-import { prng_alea } from "esm-seedrandom";
-import p5, { type Image } from "p5";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useCallback, useState } from "preact/hooks";
 
-import { Biome, colors, neighbors } from "../../biome";
-import { drawErrorMessage, drawGrid, GridShape } from "../../draw";
-import { generateDownTriangleGrid, generateHexagonGrid, generateRectangleGrid, generateRhombusGrid, generateUpTriangleGrid } from "../../grid";
-import { Hexagon } from "../../model/hexagon";
-import { wfc } from "../../wfc";
+import { Biome } from "../../model/biome";
+import { GridShape } from "../../model/grid";
+import Canvas from "../canvas";
 import Settings from "../settings";
 
+import { createRef } from "preact";
 import styles from "./styles.module.css";
 
-export type Sketch = any; // FIXME
-
-interface Settings {
+export interface Settings {
 	shape: GridShape;
 	rows: number;
 	cols: number;
@@ -25,25 +19,33 @@ interface Settings {
 	height: number;
 }
 
+export type SetterHndlr<T extends Record<string, any>> = T & {
+	[K in keyof T as K extends string ? `set${Capitalize<K>}Hndlr` : never]: (value: T[K]) => void;
+};
+
 const randomSeed = () => Math.random().toString(36).substring(2, 2 + 1 + Math.round(Math.random() * 10));
 
 const defaultSettings: Settings = {
 	shape: GridShape.HEXAGON,
 	rows: 5,
 	cols: 6,
-	onPoint: true,
+	onPoint: false,
 	radius: 40,
 	seed: randomSeed(),
 	width: 650,
 	height: 450,
 };
 
-export default function App() {
-	const canvasRef = useRef<HTMLCanvasElement>(null);
-	const [settings, setSettings] = useState(defaultSettings);
-	const [loadedTextures, _setLoadedTextures] = useState<Record<Biome, Image> | null>(null);
+export type CanvasFns = {
+	saveImageHndlr(): void;
+};
 
-	const { shape, rows, cols, onPoint, radius, seed, width, height } = settings;
+export default function App() {
+	const canvasRef = createRef<CanvasFns>();
+	const [settings, setSettings] = useState(defaultSettings);
+	const [textureFiles, setTextureFiles] = useState<Partial<Record<Biome, File>>>({});
+
+	const { rows, cols } = settings;
 	const hexagonGridRadius = Math.ceil((rows + 1) / 2);
 	const triangleHeight = Math.max(rows, cols);
 
@@ -58,66 +60,45 @@ export default function App() {
 	const randomizeSeedHndlr = () => setSettings({ ...settings, seed: randomSeed() });
 	const setWidthHndlr = (width: number) => setSettings({ ...settings, width });
 	const setHeightHndlr = (height: number) => setSettings({ ...settings, height });
-	const saveImageHndlr = () => {
-		const canvas = canvasRef.current;
-		if(!canvas) return;
 
-		const link = document.createElement("a");
-		link.download = `Map_${seed}.png`;
-		link.href = canvas.toDataURL("image/png");
-		link.click();
-		document.body.removeChild(link);
-	};
+	const addTextureImagesHndlr = useCallback(async (files: File[]) => {
+		const tuples = files
+			.map(file => {
+				const name = file.name.replace("." + file.type.split("/")[1], "");
+				return [name, file];
+			});
+		const newFiles = Object.fromEntries(tuples);
 
-	const rnd = prng_alea(seed);
-
-	// TODO: preload textures
-	// useEffect(() => {
-	// 	new p5((sketch) => {
-	// 		sketch.preload = () => {
-	// 			const prom = Object
-	// 				.entries(textures)
-	// 				.map(([key, value]) => [key, sketch.loadImage(value)] as [Biome, Image]);
-	// 			setLoadedTextures(Object.fromEntries(prom) as Record<Biome, Image>);
-	// 		};
-	// 	});
-	// }, []);
-
-	useEffect(() => {
-		const canvas = canvasRef.current;
-		if(!canvas) return;
-
-		// if(!loadedTextures) return; // TODO: preload textures
-
-		new p5((sketch) => {
-			sketch.setup = () => {
-				sketch.createCanvas(width, height, canvas);
-				try {
-					let emptyGrid: Hexagon[];
-					switch(shape) {
-						case GridShape.RECTANGLE: emptyGrid = generateRectangleGrid(rows, cols, onPoint); break;
-						case GridShape.HEXAGON: emptyGrid = generateHexagonGrid(hexagonGridRadius); break;
-						case GridShape.RHOMBUS: emptyGrid = generateRhombusGrid(rows, cols); break;
-						case GridShape.DOWN_TRIANGLE: emptyGrid = generateDownTriangleGrid(triangleHeight); break;
-						case GridShape.UP_TRIANGLE: emptyGrid = generateUpTriangleGrid(triangleHeight); break;
-						default: void (shape satisfies never);
-					}
-					const grid = wfc(emptyGrid!, neighbors, rnd);
-					drawGrid(sketch, grid, { colors, radius: radius, onPoint, textures: loadedTextures! });
-				} catch(e) {
-					drawErrorMessage(sketch, "Not Possible", e instanceof Error ? e.message : String(e));
-				}
-				sketch.noLoop();
-			};
+		setTextureFiles(prevImages => {
+			const result = Object.fromEntries([
+				...Object.entries(prevImages),
+				...Object.entries(newFiles),
+			]);
+			return result;
 		});
-	}, [settings, loadedTextures]);
+	}, []);
+
+	const removeTextureImagesHndlr = useCallback((name: Biome) => {
+		setTextureFiles(prevImages => {
+			delete prevImages[name];
+			return { ...prevImages };
+		});
+	}, []);
+
+	const removeAllTextureImagesHndlr = useCallback(() => {
+		setTextureFiles({});
+	}, []);
 
 	return (
-		<div style={styles}>
+		<div class={styles.app}>
 			<h1>Hexagon Wave Function Collapse</h1>
 
 			<Settings {...{
 				...settings,
+				textureFiles,
+				addTextureImagesHndlr,
+				removeTextureImagesHndlr,
+				removeAllTextureImagesHndlr,
 				hexagonGridRadius,
 				triangleHeight,
 				setShapeHndlr,
@@ -131,11 +112,20 @@ export default function App() {
 				randomizeSeedHndlr,
 				setWidthHndlr,
 				setHeightHndlr,
-				saveImageHndlr,
+				saveImageHndlr: () => canvasRef.current?.saveImageHndlr(),
 			}} />
 
+			<hr />
+
 			<span class="canvas-container">
-				<canvas ref={canvasRef} />
+				<Canvas
+					{...{
+						...settings,
+						hexagonGridRadius,
+						triangleHeight,
+						textures: textureFiles,
+					}}
+					ref={canvasRef} />
 			</span>
 		</div>
 	);

@@ -1,4 +1,12 @@
-import { Hexagon } from "./model/hexagon";
+import { Hexagon } from "./hexagon";
+
+export enum GridShape {
+	RECTANGLE = "RECTANGLE",
+	HEXAGON = "HEXAGON",
+	RHOMBUS = "RHOMBUS",
+	DOWN_TRIANGLE = "DOWN_TRIANGLE",
+	UP_TRIANGLE = "UP_TRIANGLE",
+}
 
 export function generateRectangleGrid(rows: number, cols: number, onPoint: boolean): Hexagon[] {
 	// FIXME: improve

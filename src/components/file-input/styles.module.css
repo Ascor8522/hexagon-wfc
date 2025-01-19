@@ -1,0 +1,62 @@
+.fileInput {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.controls {
+	display: flex;
+	flex-direction: row;
+	gap: 0.5rem;
+}
+
+.previews {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	/* justify-content: space-around; */
+
+	max-height: 15rem;
+	overflow-y: scroll;
+	overflow-x: hidden;
+
+	>div {
+		width: 3rem;
+		position: relative;
+		margin-top: 1rem;
+
+		>img {
+			width: 100%;
+			height: auto;
+		}
+
+		>p {
+			text-align: center;
+			margin: 0;
+			word-wrap: break-word;
+			font-size: 0.8rem;
+		}
+
+		>button {
+			position: absolute;
+			top: -10%;
+			right: -20%;
+			visibility: hidden;
+
+			background-color: rgb(141, 33, 33);
+			height: 1.5rem;
+			width: 1.5rem;
+			border-radius: 1.5rem;
+			z-index: 1;
+
+			color: var(--text-color);
+			line-height: 0rem;
+			text-align: center;
+		}
+
+		&:hover>button {
+			visibility: visible;
+		}
+	}
+}
